@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "7976": {
+        "pageid": 7976,
+        "ns": 0,
+        "title": "1/100 Akatsuki Gundam Oowashi Pack/Shiranui Pack Full Set",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[1/100 ORB-01 Akatsuki Gundam Oowashi Pack/Shiranui Pack Full Set]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

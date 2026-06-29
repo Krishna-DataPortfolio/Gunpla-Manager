@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "13690": {
+        "pageid": 13690,
+        "ns": 0,
+        "title": "1/100 Arios Gundam",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[1/100 GN-007 Arios Gundam]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "10440": {
+        "pageid": 10440,
+        "ns": 0,
+        "title": "1/100 Aile Strike Gundam",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[1/100 GAT-X105+AQM/E-X01 Aile Strike Gundam]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "13836": {
+        "pageid": 13836,
+        "ns": 0,
+        "title": "1/100 Cherudim Gundam",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[1/100 GN-006 Cherudim Gundam]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
