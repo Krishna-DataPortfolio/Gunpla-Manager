@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "13714": {
+        "pageid": 13714,
+        "ns": 0,
+        "title": "1/100 0 Raiser",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[1/100 GNR-010 0 Raiser]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

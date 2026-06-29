@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "15014": {
+        "pageid": 15014,
+        "ns": 0,
+        "title": "1/100 Calamity Gundam",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[Full Mechanics GAT-X131 Calamity Gundam]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

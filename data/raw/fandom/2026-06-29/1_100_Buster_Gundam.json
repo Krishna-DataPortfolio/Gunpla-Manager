@@ -1,0 +1,23 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "10439": {
+        "pageid": 10439,
+        "ns": 0,
+        "title": "1/100 Buster Gundam",
+        "revisions": [
+          {
+            "slots": {
+              "main": {
+                "contentmodel": "wikitext",
+                "contentformat": "text/x-wiki",
+                "*": "#redirect [[1/100 GAT-X103 Buster Gundam]]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
