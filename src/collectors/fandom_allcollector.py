@@ -13,18 +13,20 @@ class Fandom_All_Collector:
         Gets every page from the wiki via allpages
         fetch full page content
         """
-
+        all_page_data = []
         pages = self._fetch_all_pages(page_limit)
 
         print(f"{Fandom_All_Collector} fetched {len(pages)} pages from {self.url}")
         for i, page in enumerate(pages):
+
             title = page["title"]
 
             try:
                 data = self.fetch_page(title)
+                if self.skip_page(data):
+                    continue
                 self._save_raw_data(title, data)
-
-                print(f"[(i+1)/{len(pages)}] Fetched and Saved for {title}")
+                print(f"[{(i+1)/len(pages)}] Fetched and Saved for {title}")
 
             except Exception as e:
                 print(f"[ERROR] {title}: {e}")
@@ -41,6 +43,7 @@ class Fandom_All_Collector:
                 "action": "query",
                 "format": "json",
                 "list": "allpages",
+                "redirects": 1,
                 "aplimit": 500,
                 "apnamespace": 0
             }
@@ -77,6 +80,7 @@ class Fandom_All_Collector:
             "format": "json",
             "titles": title,
             "prop": "revisions",
+            "redirects": 1,
             "rvprop": "content",
             "rvslots": "main"
         }
@@ -100,3 +104,22 @@ class Fandom_All_Collector:
         
         return str(file_path)
     
+
+    def skip_page(self, json_data: dict) -> bool:
+        """
+        Check if the current page is a disambiguation page:
+        I.E. "Did you mean to search for one of these kits?
+        HOWEVER, there are instances where a page may be a disambiguation but still have product details (maybe the kit is discontinued or something)
+        """
+        content = None
+        pages = json_data.get("query", {}).get("pages", {}) # Technically there will only be one page at this point
+        for id, page in pages.items():
+            revisions = page.get("revisions")
+            if not revisions:
+                return True
+            content = revisions[0].get("slots", {}).get("main", {}).get("*")
+
+        if not isinstance(content, str):
+            return True
+        
+        return "{{plamo_infobox" not in content.lower()
