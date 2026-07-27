@@ -22,6 +22,7 @@
     --sans: 'IBM Plex Sans', sans-serif;
     --display: 'Barlow Condensed', sans-serif;
     --psycho: #E8408C;
+    --green: #00FF66;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -282,6 +283,19 @@
   .callout-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; margin-bottom: 6px;}
   .callout-value { font-family: var(--display); font-weight: 700; font-size: 24px; text-transform: uppercase; }
   .callout-value span { color: var(--yellow); }
+  .callout-max-price { font-family: var(--display); font-weight: 700; font-size: 24px; text-transform: uppercase; }
+  .callout-max-price span {color: var(--psycho); animation: breatheColor 1.5s ease-in-out infinite alternate; }
+
+    @keyframes breatheColor {
+    0% {
+      color: var(--psycho); /* Blue */
+      text-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    100% {
+      color: var(--green); /* Green */
+      text-shadow: 0 0 50px rgba(46, 204, 113, 0.8);
+    }
+  }
 
   footer {
     border-top: 4px solid var(--ink);
@@ -507,6 +521,7 @@
       <div>
         <div class="callout-label">Most Expensive Kit Cataloged</div>
         <div class="callout-value" id="callout-kit">—</div>
+        <div class="callout-max-price"><span id="callout-max-price">—</span></div>
       </div>
       <div>
         <div class="callout-label">Median Price (JPY)</div>
@@ -640,6 +655,7 @@ fetch('assets/data.json')
     countUp(document.getElementById('stat-exclusive'), data.exclusive_pct * 100, { format: v => v.toFixed(1) + '%' });
     document.getElementById('callout-kit').textContent = data.most_expensive_kit;
     document.getElementById('callout-median').textContent = '¥' + fmtInt(data.price_median_jpy);
+    document.getElementById('callout-max-price').textContent = '¥' + fmtInt(data.price_max_jpy);
 
     // Kits per year
     const years = Object.keys(data.kits_by_year).sort();
