@@ -1,5 +1,7 @@
 # Data files
-data/
+data/fetched*
+data/infoboxes.json
+!data/processed/
 
 
 # Byte-compiled / optimized / DLL files

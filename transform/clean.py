@@ -9,7 +9,7 @@ EXCLUSIVE_KEYWORDS = {
     'Campaign': ['campaign', 'anniversary','theater'],
     'Lottery': ['ichiban kuji'],
     'Storefront': ['bandai hobby', 'gundam base', 'tmall', 'gundam front tokyo', 'gundam factory yokohama', 'amazon japan', '7-11'],
-    'Placeholder': ['see below', 'n/a', 'tbd', 'unknown']
+    'Placeholder': ['see below', 'n/a', 'tbd', 'unknown', '']
 }
 
 GRADE_PATTERN = [
@@ -111,11 +111,23 @@ def parse_price(price_raw : str):
     low = price_raw.strip().lower()
     if low in EXCLUSIVE_KEYWORDS['Placeholder']:
         return None
-    digits = re.sub(r"[^\d]", "", price_raw)
-    if not digits:
-        return None
-    value = int(digits)
-    return value
+
+    match = re.search(r'([￥¥$])\s*([\d,]+(?:\.\d+)?)', price_raw)
+    if not match:
+        yen_match = re.search(r'([\d,]+)\s*yen', low)
+        if yen_match:
+            value = int(yen_match.group(1).replace(',',''))
+            return (value, 'JPY')
+        return None, None
+    symbol, digits = match.group(1), match.group(2)
+    currency = 'JPY' if symbol == '¥' or symbol =='￥' else 'USD'
+    value = float(digits.replace(',',''))
+
+    bounds = (50, 500_000) if currency == 'JPY' else (1, 3000)
+    if value <= bounds[0] or bounds[1] <= value:
+        return None, None
+
+    return (int(value) if currency == 'JPY' else value), currency
 
 def parse_year(date : str):
     if not date or not isinstance(date, str):

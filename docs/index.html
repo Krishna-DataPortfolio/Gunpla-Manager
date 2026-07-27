@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gunpla Dataset — Project Spec Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --paper: #F2F3F5;
+    --panel: #FFFFFF;
+    --ink: #12161C;
+    --ink-soft: #4A5361;
+    --line: #D5D9DE;
+    --blue: #1D4FA3;
+    --blue-deep: #0F2E63;
+    --red: #C4372B;
+    --yellow: #F2B705;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --display: 'Barlow Condensed', sans-serif;
+    --psycho: #E8408C;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  a { 
+    color: var(--blue-deep); 
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- Header strip ---------- */
+  .topstrip {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    padding: 8px 0;
+  }
+  .topstrip .wrap {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topstrip span { opacity: 0.75; }
+  .topstrip strong { color: var(--yellow); opacity: 1; }
+  .topstrip a:hover strong { color: var(--psycho); }
+
+  /* ---------- Hero / spec plate ---------- */
+  .hero {
+    padding: 56px 0 40px;
+    border-bottom: 4px solid var(--ink);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--blue-deep);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 22px;
+    height: 3px;
+    background: var(--red);
+    display: inline-block;
+  }
+  h1.title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(42px, 7vw, 84px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+  h1.title .accent { color: var(--blue); }
+  .subtitle {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 620px;
+    line-height: 1.55;
+    margin: 12px 0 32px;
+  }
+  .subtitle a { color: var(--blue-deep); font-weight: 600; text-decoration-color: var(--blue); }
+
+  .spec-plate {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 2px solid var(--ink);
+    background: var(--panel);
+  }
+  .spec-cell {
+    padding: 18px 20px;
+    border-right: 2px solid var(--ink);
+  }
+  .spec-cell:last-child { border-right: none; }
+  .spec-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .spec-value {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 26px;
+    color: var(--ink);
+  }
+  .spec-value.accent-blue { color: var(--blue-deep); }
+  .spec-value.accent-red { color: var(--red); }
+  .spec-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  @media (max-width: 700px) {
+    .spec-plate { grid-template-columns: repeat(2, 1fr); }
+    .spec-cell:nth-child(2) { border-right: none; }
+  }
+
+  /* ---------- Section headers ---------- */
+  section { padding: 56px 0; }
+  section.tight { padding-top: 0; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 12px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--paper);
+    background: var(--blue-deep);
+    padding: 3px 9px;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 30px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+  .section-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: -18px 0 28px;
+    max-width: 640px;
+  }
+
+  /* ---------- Roadmap / build stages ---------- */
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    background: var(--ink);
+    border: 2px solid var(--ink);
+  }
+  .stage {
+    background: var(--panel);
+    padding: 20px 16px 22px;
+    position: relative;
+  }
+  .stage-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .stage-name {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 19px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    line-height: 1.05;
+  }
+  .stage-status {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+  }
+  .stage.done { border-top: 4px solid var(--blue); }
+  .stage.done .stage-status { color: var(--blue-deep); }
+  .stage.active { border-top: 4px solid var(--yellow); }
+  .stage.active .stage-status { color: #8a6d00; }
+  .stage.planned { border-top: 4px solid var(--line); }
+  .stage.planned .stage-status { color: var(--ink-soft); }
+  .stage-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; margin-top: 10px; }
+
+  @media (max-width: 800px) {
+    .stages { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- Chart panels ---------- */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 2px;
+    background: var(--ink);
+    border: 2px solid var(--ink);
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--ink);
+    border: 2px solid var(--ink);
+    margin-top: 2px;
+  }
+  @media (max-width: 800px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    padding: 22px 22px 16px;
+  }
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .panel canvas { max-height: 280px; }
+
+  .callout {
+    background: var(--blue-deep);
+    color: var(--paper);
+    padding: 24px 26px;
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .callout-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; margin-bottom: 6px;}
+  .callout-value { font-family: var(--display); font-weight: 700; font-size: 24px; text-transform: uppercase; }
+  .callout-value span { color: var(--yellow); }
+
+  footer {
+    border-top: 4px solid var(--ink);
+    padding: 32px 0 48px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  footer a { color: var(--blue-deep); font-weight: 600; }
+  .footer-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .foot-mono { font-family: var(--mono); font-size: 11px; }
+
+  .loading-note {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 40px 0;
+    text-align: center;
+  }
+
+  /* ---------- Splash / boot sequence ---------- */
+  #splash {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #splash-panel { width: min(420px, 86vw); }
+  #splash-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--psycho);
+    text-align: center;
+    margin-bottom: 18px;
+    text-shadow: 0 0 12px rgba(232,64,140,0.6);
+  }
+  #splash-log {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: #7C8797;
+    height: 84px;
+    margin-bottom: 16px;
+    line-height: 1.7;
+    overflow: hidden;
+  }
+  #splash-log .line { opacity: 0; animation: line-in 0.35s ease forwards; }
+  #splash-log .line.ok::before { content: '> '; color: var(--psycho); }
+  @keyframes line-in { to { opacity: 1; } }
+
+  .runner-bar {
+    display: flex;
+    gap: 3px;
+    height: 14px;
+    margin-bottom: 10px;
+  }
+  .runner-seg {
+    flex: 1;
+    background: #262E3A;
+    border: 1px solid #384153;
+    position: relative;
+    overflow: hidden;
+  }
+  .runner-seg.lit {
+    background: var(--psycho);
+    border-color: var(--psycho);
+    box-shadow: 0 0 10px rgba(232,64,140,0.85), 0 0 2px rgba(232,64,140,1) inset;
+    animation: seg-pulse 0.5s ease;
+  }
+  @keyframes seg-pulse { from { filter: brightness(2.4); } to { filter: brightness(1); } }
+
+  #splash-pct {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--paper);
+    display: flex;
+    justify-content: space-between;
+  }
+  #splash-pct span:last-child { color: var(--psycho); }
+
+  /* ---------- Reveal-on-scroll ---------- */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ---------- Hover lift ---------- */
+  .stage, .panel { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .stage:hover, .panel:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(18,22,28,0.12); position: relative; z-index: 2; }
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div id="splash-panel">
+    <div id="splash-tag">Psycho Frame // Activation Sequence</div>
+    <div id="splash-log"></div>
+    <div class="runner-bar" id="runner-bar"></div>
+    <div id="splash-pct"><span>LOADING CATALOG</span><span id="splash-pct-num">0%</span></div>
+  </div>
+</div>
+
+<div class="topstrip">
+  <div class="wrap">
+    <span>SOURCE&nbsp;<a href="https://gunpla.fandom.com/wiki/Gunplapedia"><strong>Gunpla Fandom Wiki</strong></a> · via MediaWiki API</span>
+    <span>STATUS&nbsp;<strong>Cleaning Complete</strong> · EDA In Progress</span>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Data Portfolio Project</div>
+    <h1 class="title">Gunpla<br><span class="accent">Dataset</span></h1>
+    <p class="subtitle">
+      A structured dataset of Bandai's Gunpla model kit catalog, collected from the Gunpla Fandom wiki
+      and cleaned into an analysis-ready form. Every number below is generated directly from the current
+      dataset — this page updates as the project moves through EDA and modeling.
+      Full pipeline on <a href="https://github.com/Krishna-DataPortfolio/Gunpla-Manager" target="_blank">GitHub</a>.
+    </p>
+
+    <div class="spec-plate" id="spec-plate">
+      <div class="spec-cell">
+        <div class="spec-label">Kits Cataloged</div>
+        <div class="spec-value" id="stat-total">—</div>
+      </div>
+      <div class="spec-cell">
+        <div class="spec-label">Years Covered</div>
+        <div class="spec-value" id="stat-years">—</div>
+      </div>
+      <div class="spec-cell">
+        <div class="spec-label">Grade Lines Tracked</div>
+        <div class="spec-value accent-blue" id="stat-grades">—</div>
+      </div>
+      <div class="spec-cell">
+        <div class="spec-label">Exclusive Releases</div>
+        <div class="spec-value accent-red" id="stat-exclusive">—</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="tight" style="padding-top: 48px;">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <span class="section-title">Build Stages</span>
+    </div>
+    <div class="stages">
+      <div class="stage done reveal">
+        <div class="stage-num">STAGE 1</div>
+        <div class="stage-name">Collection</div>
+        <span class="stage-status">Complete</span>
+        <div class="stage-desc">MediaWiki API crawl + infobox parsing across the full Gunpla Fandom catalog.</div>
+      </div>
+      <div class="stage done reveal">
+        <div class="stage-num">STAGE 2</div>
+        <div class="stage-name">Cleaning</div>
+        <span class="stage-status">Complete</span>
+        <div class="stage-desc">Schema normalization, grade inference, price/date parsing, exclusivity classification.</div>
+      </div>
+      <div class="stage active reveal">
+        <div class="stage-num">STAGE 3</div>
+        <div class="stage-name">EDA</div>
+        <span class="stage-status">In Progress</span>
+        <div class="stage-desc">Distribution, trend, and relationship analysis across price, grade, and time.</div>
+      </div>
+      <div class="stage planned reveal">
+        <div class="stage-num">STAGE 4</div>
+        <div class="stage-name">Modeling</div>
+        <span class="stage-status">Planned</span>
+        <div class="stage-desc">scikit-learn clustering and price/grade prediction informed by EDA findings.</div>
+      </div>
+      <div class="stage planned reveal">
+        <div class="stage-num">STAGE 5</div>
+        <div class="stage-name">Dashboard</div>
+        <span class="stage-status">Planned</span>
+        <div class="stage-desc">Interactive Tableau Public dashboard, linked from this page.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <span class="section-title">Catalog Readout</span>
+    </div>
+    <p class="section-desc">Live figures computed from the current cleaned dataset — regenerated each time the pipeline is rerun.</p>
+
+    <div id="charts-loading" class="loading-note">Loading dataset…</div>
+
+    <div class="grid-2" id="charts-row1" style="display:none;">
+      <div class="panel">
+        <div class="panel-title"><span>Kits Released Per Year</span><span>1980–2026</span></div>
+        <canvas id="chart-year"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span>Grade Breakdown</span><span>Top lines</span></div>
+        <canvas id="chart-grade"></canvas>
+      </div>
+    </div>
+
+    <div class="grid-3" id="charts-row2" style="display:none;">
+      <div class="panel">
+        <div class="panel-title"><span>Top Franchises</span></div>
+        <canvas id="chart-franchise"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span>Exclusivity Channel</span></div>
+        <canvas id="chart-exclusive"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span>Most Re-Released Suits</span></div>
+        <canvas id="chart-reused"></canvas>
+      </div>
+    </div>
+
+    <div class="callout" id="price-callout" style="display:none;">
+      <div>
+        <div class="callout-label">Most Expensive Kit Cataloged</div>
+        <div class="callout-value" id="callout-kit">—</div>
+      </div>
+      <div>
+        <div class="callout-label">Median Price (JPY)</div>
+        <div class="callout-value"><span id="callout-median">—</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span>Gunpla Dataset Pipeline — collection, cleaning, and analysis of Bandai's Gunpla catalog.</span>
+      <span class="foot-mono">DATA.JSON REGENERATED VIA <code>generate_dashboard_data.py</code></span>
+    </div>
+    <div class="footer-row" style="margin-top:10px;">
+      <a href="https://github.com/Krishna-DataPortfolio/Gunpla-Manager" target="_blank">Repository</a>
+      <span class="foot-mono">SOURCE: GUNPLA FANDOM WIKI</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const INK = '#12161C';
+const INK_SOFT = '#4A5361';
+const BLUE = '#1D4FA3';
+const BLUE_DEEP = '#0F2E63';
+const RED = '#C4372B';
+const YELLOW = '#F2B705';
+const PALETTE = [BLUE_DEEP, BLUE, RED, YELLOW, '#5B7DB1', '#8A93A0', '#D5891C', '#6E2E27'];
+
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = INK_SOFT;
+
+function fmtInt(n) { return new Intl.NumberFormat('en-US').format(Math.round(n)); }
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Splash boot sequence ---------- */
+function runSplash() {
+  const splash = document.getElementById('splash');
+  const log = document.getElementById('splash-log');
+  const bar = document.getElementById('runner-bar');
+  const pctEl = document.getElementById('splash-pct-num');
+  const SEGMENTS = 24;
+  for (let i = 0; i < SEGMENTS; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'runner-seg';
+    bar.appendChild(seg);
+  }
+  const bootLines = [
+    'MOUNTING GUNPLA-MANAGER/DATA...',
+    'READING CLEANED_GUNPLA_DATASET.CSV...',
+    'RESOLVING 2,300+ KIT RECORDS...',
+    'BUILDING CATALOG READOUT...',
+  ];
+
+  if (reduceMotion) {
+    splash.classList.add('hidden');
+    return;
+  }
+
+  let seg = 0;
+  const segs = bar.querySelectorAll('.runner-seg');
+  const totalMs = 2000;
+  const stepMs = totalMs / SEGMENTS;
+
+  bootLines.forEach((text, i) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = 'line ok';
+      line.textContent = text;
+      log.appendChild(line);
+    }, i * (totalMs / bootLines.length));
+  });
+
+  const timer = setInterval(() => {
+    if (seg < SEGMENTS) {
+      segs[seg].classList.add('lit');
+      pctEl.textContent = Math.round(((seg + 1) / SEGMENTS) * 100) + '%';
+      seg++;
+    } else {
+      clearInterval(timer);
+      setTimeout(() => splash.classList.add('hidden'), 250);
+    }
+  }, stepMs);
+}
+runSplash();
+
+/* ---------- Count-up for spec plate ---------- */
+function countUp(el, target, opts = {}) {
+  if (reduceMotion) { el.textContent = opts.format ? opts.format(target) : target; return; }
+  const duration = 900;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = target * eased;
+    el.textContent = opts.format ? opts.format(val) : Math.round(val);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------- Scroll reveal ---------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('in');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach((el, i) => {
+  el.style.transitionDelay = reduceMotion ? '0s' : (i * 0.08) + 's';
+  revealObserver.observe(el);
+});
+
+fetch('assets/data.json')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('charts-loading').style.display = 'none';
+    document.getElementById('charts-row1').style.display = 'grid';
+    document.getElementById('charts-row2').style.display = 'grid';
+    document.getElementById('price-callout').style.display = 'flex';
+
+    countUp(document.getElementById('stat-total'), data.total_kits, { format: fmtInt });
+    document.getElementById('stat-years').textContent = data.date_range[0] + '–' + data.date_range[1];
+    countUp(document.getElementById('stat-grades'), Object.keys(data.grade_counts).filter(g => g !== 'Ungraded').length);
+    countUp(document.getElementById('stat-exclusive'), data.exclusive_pct * 100, { format: v => v.toFixed(1) + '%' });
+    document.getElementById('callout-kit').textContent = data.most_expensive_kit;
+    document.getElementById('callout-median').textContent = '¥' + fmtInt(data.price_median_jpy);
+
+    // Kits per year
+    const years = Object.keys(data.kits_by_year).sort();
+    new Chart(document.getElementById('chart-year'), {
+      type: 'bar',
+      data: {
+        labels: years,
+        datasets: [{
+          data: years.map(y => data.kits_by_year[y]),
+          backgroundColor: BLUE,
+          borderRadius: 1,
+          barPercentage: 1.0,
+          categoryPercentage: 0.9,
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+          y: { grid: { color: '#E5E8EB' } }
+        }
+      }
+    });
+
+    // Grade breakdown
+    const gradeEntries = Object.entries(data.grade_counts).filter(([k]) => k !== 'Ungraded').sort((a,b) => b[1]-a[1]).slice(0,8);
+    new Chart(document.getElementById('chart-grade'), {
+      type: 'bar',
+      data: {
+        labels: gradeEntries.map(e => e[0]),
+        datasets: [{
+          data: gradeEntries.map(e => e[1]),
+          backgroundColor: PALETTE,
+          borderRadius: 1,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#E5E8EB' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Top franchises
+    const franchiseEntries = Object.entries(data.top_franchises);
+    new Chart(document.getElementById('chart-franchise'), {
+      type: 'bar',
+      data: {
+        labels: franchiseEntries.map(e => e[0].replace('Mobile Suit Gundam', 'MSG')),
+        datasets: [{ data: franchiseEntries.map(e => e[1]), backgroundColor: BLUE_DEEP, borderRadius: 1 }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { color: '#E5E8EB' } }, y: { grid: { display: false }, ticks: { font: { size: 9.5 } } } }
+      }
+    });
+
+    // Exclusivity donut
+    const exEntries = Object.entries(data.exclusive_channel_counts);
+    new Chart(document.getElementById('chart-exclusive'), {
+      type: 'doughnut',
+      data: {
+        labels: exEntries.map(e => e[0]),
+        datasets: [{ data: exEntries.map(e => e[1]), backgroundColor: PALETTE, borderWidth: 2, borderColor: '#FFFFFF' }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 9.5 } } } }
+      }
+    });
+
+    // Most reused mobile suits
+    const reuseEntries = Object.entries(data.most_reused_mobile_suits);
+    new Chart(document.getElementById('chart-reused'), {
+      type: 'bar',
+      data: {
+        labels: reuseEntries.map(e => e[0]),
+        datasets: [{ data: reuseEntries.map(e => e[1]), backgroundColor: RED, borderRadius: 1 }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { color: '#E5E8EB' } }, y: { grid: { display: false }, ticks: { font: { size: 9 } } } }
+      }
+    });
+  })
+  .catch(err => {
+    document.getElementById('charts-loading').textContent = 'Could not load assets/data.json — run generate_dashboard_data.py first.';
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>
