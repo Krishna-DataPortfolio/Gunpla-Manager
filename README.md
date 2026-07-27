@@ -26,6 +26,11 @@ This project focuses on **scalable data collection, structured parsing, and data
 │       ├── discovery_util.py (Skip Logic and Discovery Search Scraping)
 │       ├── fandom_allcollector.py (For querying and parsing all model kit pages from gunpla wiki)
 │       ├── fandom_manual_collector.py (For manually adding pages with exact page names to an existing dataset)
+│   ├── notebooks
+│       ├── clean_analysis.ipynb (Data cleaning jupyter notebook)
+│       ├── clean_analysis.py (Final script exported from jupyter notebooks)
+│   ├── transform
+│       ├── clean.py (Utility functions used by clean_analysis
 ├── data/ (local only directory to hold parsed data)
 ├── gitignore
 ├── README.md
