@@ -12,6 +12,12 @@ EXCLUSIVE_KEYWORDS = {
     'Placeholder': ['see below', 'n/a', 'tbd', 'unknown', '']
 }
 
+CSV_TO_DB_RENAME = {
+    "jan/isbn" : "jan_isbn",
+    "release_date" : "release_date_raw",
+    "run" : "run_type"
+}
+
 GRADE_PATTERN = [
     ("Perfect Grade", r"\bPG\b|Perfect Grade"),
     ("Master Grade", r"\bMG\b|Master Grade"),
@@ -46,6 +52,16 @@ def normalize_paint(val):
         return 'Optional'
     return val # keep the values not matching the above options the same (we'll need to validate these manually)
 
+def normalize_glue(val):
+    if pd.isna(val):
+        return None
+    val = str(val).strip()
+    low = val.lower()
+    if low.startswith('yes'):
+        return 'Yes'
+    elif low.startswith('no'):
+        return 'No'
+    return None
 
 def to_list(val):
     if pd.isna(val):
@@ -136,3 +152,10 @@ def parse_year(date : str):
         return None
     match = re.search(r"(19|20)\d{2}", date)
     return int(match.group()) if match else None
+
+def clean_franchise(franchise):
+    if pd.isna(franchise):
+        return None
+    if ';' in franchise:
+        return franchise.split(';')[1].strip()
+    return franchise.strip()

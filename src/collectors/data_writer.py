@@ -6,7 +6,7 @@ from datetime import datetime
 class Dataset_Writer:
     def __init__(self):
         now = datetime.now().strftime("%Y-%m-%d")
-        self.output_path = Path("data/final") / f"bandai_dataset_{now}.json"
+        self.output_path = Path("data/final") / f"bandai_dataset_{now}.jsonl"
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
 
     def append(self, record: dict):

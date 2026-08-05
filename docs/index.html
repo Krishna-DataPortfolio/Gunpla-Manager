@@ -105,7 +105,15 @@
     margin: 0 0 8px;
     text-transform: uppercase;
   }
-  h1.title .accent { color: var(--blue); }
+  h1.title .accent { color: var(--black); }
+  span.split-color {
+    background: linear-gradient(to right, var(--blue) , var(--red), var(--yellow));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800; /* Replicates text-extrabold */
+    display: inline-block; /* Ensures gradient renders correctly on the span */
+  }
   .subtitle {
     font-size: 17px;
     color: var(--ink-soft);
@@ -411,7 +419,7 @@
 <header class="hero">
   <div class="wrap">
     <div class="eyebrow">Data Portfolio Project</div>
-    <h1 class="title">Gunpla<br><span class="accent">Dataset</span></h1>
+    <h1 class="title"><span class="split-color">Gunpla</span><br><span class="accent">Dataset</span></h1>
     <p class="subtitle">
       A structured dataset of Bandai's Gunpla model kit catalog, collected from the Gunpla Fandom wiki
       and cleaned into an analysis-ready form. Every number below is generated directly from the current

@@ -1,8 +1,12 @@
 # Data files
 data/fetched*
+data/gcs_data*
 data/infoboxes.json
 !data/processed/
+data/final
 
+# env file
+.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

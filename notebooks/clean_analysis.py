@@ -1,21 +1,17 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[50]:
-
-
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
+# In[255]:
 import sys
 import pandas as pd
 from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path().resolve().parents[0]))
-from transform.clean import normalize_paint, merge_variants, classify_exclusives, check_category_for_exclusivity, check_grade, parse_price, parse_year, to_list
+from transform.clean import normalize_paint, merge_variants, classify_exclusives, check_category_for_exclusivity, check_grade, parse_price, parse_year, to_list, clean_franchise, normalize_glue, CSV_TO_DB_RENAME
 
 
-# In[51]:
+# In[256]:
 
 
 INFOBOX_FIELDS = ["kit_name","image","categories","franchise","run","release date", "materials", "scale", "classification", 
@@ -25,22 +21,22 @@ INFOBOX_FIELDS = ["kit_name","image","categories","franchise","run","release dat
 PAINT_COLS = ["need paint", "need paint?", "need to paint?"]
 
 
-# In[52]:
+# In[257]:
 
 
 # Acquire path for dataset (it's in a folder on an upper level)
 parent_path = Path().resolve().parents[0]
-json_file = parent_path / "data/final/bandai_dataset_2026-07-01.jsonl"
+json_file = parent_path / "data/fetched/bandai_dataset_2026-07-01.jsonl"
 
 
-# In[53]:
+# In[258]:
 
 
 #Create df
 df = pd.read_json(json_file, lines=True)
 
 
-# In[54]:
+# In[259]:
 
 
 # Pull out image URL into separate column and drop original image column
@@ -48,7 +44,7 @@ df['image_url'] = df['image'].map(lambda x: x.get('url', x) if isinstance(x, dic
 df = df.drop(columns=['image'])
 
 
-# In[55]:
+# In[260]:
 
 
 # Pull out all infobox fields into their own columns
@@ -56,13 +52,13 @@ df = pd.concat([df.drop(['infobox'], axis=1), df['infobox'].apply(pd.Series)], a
 df = df.replace(r'^\s*$', np.nan, regex=True)
 
 
-# In[56]:
+# In[261]:
 
 
 df.columns
 
 
-# In[57]:
+# In[262]:
 
 
 # Check to see if rows have more than 1 paint column
@@ -78,7 +74,7 @@ df['need_paint'] = df['need_paint_clean'].combine_first(df['need_to_paint_clean'
 df = df.drop(columns=['need paint?', 'need to paint?', 'need_paint_clean', 'need_to_paint_clean'])
 
 
-# In[58]:
+# In[263]:
 
 
 from difflib import get_close_matches
@@ -89,7 +85,7 @@ for c in cols:
         print(c, "~", matches)
 
 
-# In[59]:
+# In[264]:
 
 
 # Compare variant columns and combine into one
@@ -102,14 +98,14 @@ df['variant_of'] = df.apply(merge_variants, axis=1)
 df = df.drop(columns=VARIANT_COL)
 
 
-# In[ ]:
+# In[265]:
 
 
 # These really don't relate to the gunpla itself but rather the illustrator of the gundam or for figures + plus the random "1", "2" columns
 df = df.drop(columns=['illustration by', 'image', 'sculptor','1','2','illustration','cg works by', 'finish work by','imgsize','figure sculpt','character design'])
 
 
-# In[ ]:
+# In[266]:
 
 
 df['exclusivity_type'] = df['exclusive to'].apply(classify_exclusives)  
@@ -117,7 +113,7 @@ print(df['exclusivity_type'].value_counts(dropna=False))
 print(df.loc[df['exclusivity_type'] == 'Other', 'kit_name'].unique())
 
 
-# In[ ]:
+# In[267]:
 
 
 # Create is_exclusive column
@@ -134,7 +130,7 @@ print(f"Backfilled {inferred['exclusivity_type'].notna().sum()} of {needs_backfi
 print(df.loc[needs_backfill & inferred['exclusivity_type'].notna(), ['kit_name', 'categories', 'exclusive_channel_type_from_category']].head(20))
 
 
-# In[ ]:
+# In[268]:
 
 
 pd.set_option('display.max_rows', 21)
@@ -147,7 +143,7 @@ unmatched_cats[unmatched_cats.str.contains('exclusive', case=False, na=False)].v
 # We can probably leave the remaining exclusive kits that don't have a specification alone, stuff like CD-exclusive/ molds/ aren't specific enough
 
 
-# In[ ]:
+# In[269]:
 
 
 ADDON_COLS = [c for c in df.columns if c in ['for use with', 'add-on for']]
@@ -156,7 +152,7 @@ print(f"{conflict.sum()} rows with both columns populated")
 df.loc[conflict, ['kit_name'] + ADDON_COLS]
 
 
-# In[ ]:
+# In[270]:
 
 
 # Drop add-on for as it's either a duplicate of for use with, or it's not a searchable kit
@@ -165,19 +161,19 @@ df = df.drop(columns=['add-on for', 'name'])
 df.loc[df['used_for'].notna(), ['kit_name','used_for']]
 
 
-# In[ ]:
+# In[271]:
 
 
 df.loc[df['exclusive_channel_type_from_category'].notna(), ['exclusive_channel_type_from_category','exclusive_value_from_category']]
 
 
-# In[ ]:
+# In[272]:
 
 
 df.columns
 
 
-# In[ ]:
+# In[273]:
 
 
 pd.set_option('display.max_rows', 25)
@@ -185,64 +181,69 @@ pd.set_option('display.max_rows', 25)
 df.notna().mean().sort_values(ascending=False)
 
 
-# In[ ]:
+# In[274]:
 
 
 df = df.rename(columns={'release date': 'release_date', 'need glue?' : 'glue_needed', 'lineup no.':'lineup_num', 'model of':'model_of', 'exclusive to':'exclusive_to', 'japanese name':'japanese_name'})
 
 
-# In[ ]:
+# In[275]:
 
 
 df.columns
 
 
-# In[ ]:
+# In[276]:
 
 
 print(df['used_for'].dropna().head(10))
 
 
-# In[ ]:
+# In[277]:
 
 
 df.columns.tolist()
 
 
-# In[ ]:
+# In[278]:
 
 
 df = df.drop(columns=['exclusivity_type'])
 df = df.rename(columns={'used_for' : 'requires_kit'})
 
 
-# In[ ]:
+# In[279]:
 
 
 df['exclusive_channel_type'] = df['exclusive_to'].apply(classify_exclusives).combine_first(df['exclusive_channel_type_from_category'])
 
 
-# In[ ]:
+# In[280]:
 
 
 df = df.drop(columns=['exclusive_channel_type_from_category'])
 
 
-# In[ ]:
+# In[281]:
 
 
 df.notna().mean().sort_values(ascending=False)
 
 
-# In[61]:
+# In[282]:
 
 
 df['grade'] = df.apply(lambda r: check_grade(r['kit_name'], r['classification']), axis=1)
-df['price_yen'] = df['price'].apply(parse_price)
+df[['price_value', 'price_currency']] = df['price'].apply(lambda x: pd.Series(parse_price(x)))
+pd.set_option('display.max_colwidth', None)
+print(df.loc[[185, 213, 673, 678, 682, 683, 875, 1778, 2066, 2067, 2194, 2252, 2253, 2300], ['kit_name', 'price']].apply(
+    lambda r: (r['kit_name'], parse_price(r['price'])), axis=1
+))
+df = df.drop(columns=['price'])
 df['release_year'] = df['release_date'].apply(parse_year)
 
 
-# In[ ]:
+# In[283]:
 
 
 print(df['grade'].value_counts(dropna=False))
@@ -250,14 +251,14 @@ print(f"No grade (gradeless line): {df['grade'].isna().mean():.1%}")
 no_grade = df[df['grade'].isna()]
 
 
-# In[ ]:
+# In[284]:
 
 
 pd.set_option('display.max_rows', 100)
 print(no_grade['classification'].value_counts())
 
 
-# In[ ]:
+# In[285]:
 
 
 df = df.rename(columns={'model of': 'model_of'})
@@ -265,28 +266,95 @@ df['model_of'] = df['model_of'].apply(to_list)
 df['kit_count'] = df['model_of'].apply(lambda x: max(len(x), 1) if isinstance(x, list) else pd.NA)
 
 
-# In[60]:
+# In[286]:
 
 
-print(f"Missing price_yen: {df['price_yen'].isna().mean():.1%}")
+print(f"Missing price: {df['price_value'].isna().mean():.1%}")
 print(f"Missing release_year: {df['release_year'].isna().mean():.1%}")
 print(df['kit_count'].value_counts())
 
 
+# In[287]:
+
+
+# Some wiki entries have the price under a different section, like isbn or need to paint (bruh)
+MANUAL_PRICE_OVERRIDE = {
+    "Figure-rise Standard Kamen Rider Kuuga (Mighty Form)/Decade Ver." : (3200, 'JPY'),
+    "Super Mini-pla Shinka Gattai Daizyuzin": (4968, 'JPY')
+}
+
+for name, (value, currency) in MANUAL_PRICE_OVERRIDE.items():
+    mask = df['kit_name'] == name
+    df.loc[mask, 'price_value'] = value
+    df.loc[mask, 'price_currency'] = currency
+
+
+# In[288]:
+
+
+franchise_semicolon = df['franchise'].dropna().str.contains(';')
+multi_semicolon = df['franchise'].dropna().str.count(';') > 1
+print(f"{franchise_semicolon.sum()} rows with semicolon in franchise")
+print(f"{multi_semicolon.sum()} rows with multiple semicolons in franchise")
+
+
+# In[289]:
+
+
+# Clean up franchise name to only keep second part of franchise if it contains a semicolon
+df['franchise'] = df['franchise'].apply(clean_franchise)
+
+
+# In[290]:
+
+
+new_semicolon = df['franchise'].dropna().str.contains(';')
+print(f"{new_semicolon.sum()} rows with semicolon in franchise")
+
+
+# In[291]:
+
+
+dupes = df[df.duplicated('kit_name', keep=False)].sort_values('kit_name')
+print(f"{df['kit_name'].duplicated().sum()} duplicated kit_name rows")
+print(dupes[['kit_name', 'jan/isbn', 'price_value', 'release_year']])
+
+
+# In[292]:
+
+
+before = len(df)
+df = df.drop_duplicates(subset='kit_name', keep='last')
+print(f"Dropped {before - len(df)} duplicate rows, {len(df)} remaining")
+
+
+# In[293]:
+
+
+df['glue_needed'] = df['glue_needed'].apply(normalize_glue)
+
+
+# In[294]:
+
+
+df.loc[df['kit_name'] == '1/100 ASW-G-01 Gundam Bael']
+
+
 # In[ ]:
 
 
-print(df['kit_count'].dtype)
-print(df['kit_count'].apply(type).value_counts())
+
+
+
+# In[295]:
+
+
+path = parent_path / "data/processed"
+file_name = "Cleaned_Gunpla_Dataset.csv"
+df.to_csv(path / file_name, index=False)
 
 
 # In[ ]:
-
-
-row = df[df['kit_count'].apply(type) == tuple].iloc[0]
-print(repr(row['model_of']))
-print(type(row['model_of']))
-print(repr(row['kit_count']))
 
 
 
