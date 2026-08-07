@@ -10,11 +10,11 @@ Uses .env variables for database connection parameters,
 The .env file should never be commited, but a sample .env.example file is provided as a reference
 (or you can run cp .env.example .env and fill in blank or incorrect values)
 
-PGHOST (default: localhost)
-PGPORT (default: 5432)
-PGDATABASE (default: bandai_model)
-PGUSER (default: postgres)
-PGPASSWORD (required, no default, pls don't hardcode this)
+GUNPLA_PGHOST (default: localhost)
+GUNPLA_PGPORT (default: 5432)
+GUNPLA_PGDATABASE (default: bandai_model)
+GUNPLA_PGUSER (default: postgres)
+GUNPLA_PGPASSWORD (required, no default, pls don't hardcode this)
 
 """
 import pandas as pd
@@ -40,15 +40,15 @@ FACT_COLUMNS = [
 ]
 
 def get_connection():
-    missing = [v for v in ("PGPASSWORD",) if not os.getenv(v)]
+    missing = [v for v in ("GUNPLA_PGPASSWORD",) if not os.getenv(v)]
     if missing:
         sys.exit("Missing required env variable(s): {', '.join(missing)}")
     return psycopg2.connect(
-        host=os.getenv("PGHOST", "localhost"),
-        port=os.getenv("PGPORT", "5432"),
-        dbname = os.getenv("PGDATABASE", "bandai_model"),
-        user = os.getenv("PGUSER", "postgres"),
-        password = os.environ["PGPASSWORD"]
+        host=os.getenv("GUNPLA_PGHOST", "localhost"),
+        port=os.getenv("GUNPLA_PGPORT", "5432"),
+        dbname = os.getenv("GUNPLA_PGDATABASE", "bandai_model"),
+        user = os.getenv("GUNPLA_PGUSER", "postgres"),
+        password = os.environ["GUNPLA_PGPASSWORD"]
     )
 
 

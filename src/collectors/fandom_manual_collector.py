@@ -2,7 +2,6 @@ import requests
 import json
 from datetime import datetime
 from pathlib import Path
-from bs4 import BeautifulSoup
 from src.collectors.collector_util import Collector_Util
 from src.collectors.discovery_util import Discovery_Util
 from src.collectors.data_writer import Dataset_Writer
@@ -53,7 +52,7 @@ class ManualPageCollector:
             print(f"[MANUAL ERROR] {title}: {e}")
             return None
 
-    def append_manual_pages(self, page_titles: List[str]):
+    def append_manual_pages(self, page_titles: list[str]):
         """
         Main entry: fetch + parse + append to JSONL
         """
