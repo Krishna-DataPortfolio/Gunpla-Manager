@@ -19,14 +19,14 @@ from google.cloud import storage
 load_dotenv()
 
 def get_client() -> storage.Client:
-    project = os.getenv("GOOGLE_CLOUD_PROJECT")
+    project = os.getenv("GUNPLA_GOOGLE_CLOUD_PROJECT")
     if not project:
-        sys.exit("Missing GOOGLE_CLOUD_PROJECT")
+        sys.exit("Missing GUNPLA_GOOGLE_CLOUD_PROJECT")
     return storage.Client(project=project)
 
 
 def get_bucket(client : storage.Client):
-    bucket_name = os.getenv("GCS_BUCKET_NAME")
+    bucket_name = os.getenv("GUNPLA_GCS_BUCKET_NAME")
     if not bucket_name:
         sys.exit("Missing GOOGLE_CLOUD_PROJECT in .env")
     return client.bucket(bucket_name)

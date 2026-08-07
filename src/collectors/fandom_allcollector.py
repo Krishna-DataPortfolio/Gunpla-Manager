@@ -2,7 +2,6 @@ import requests
 import json
 from datetime import datetime
 from pathlib import Path
-from bs4 import BeautifulSoup
 from src.collectors.collector_util import Collector_Util
 from src.collectors.discovery_util import Discovery_Util
 from src.collectors.data_writer import Dataset_Writer

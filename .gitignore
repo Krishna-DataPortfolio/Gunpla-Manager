@@ -1,3 +1,6 @@
+# Docker / Astro
+.astro
+
 # Data files
 data/fetched*
 data/gcs_data*

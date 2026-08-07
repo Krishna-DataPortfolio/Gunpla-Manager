@@ -1,0 +1,7 @@
+services:
+  scheduler:
+    volumes:
+      - "C:/Users/<user>/AppData/Roaming/gcloud:/home/astro/.config/gcloud:ro"
+  dag-processor:
+    volumes:
+      - "C:/Users/<user>/AppData/Roaming/gcloud:/home/astro/.config/gcloud:ro"
