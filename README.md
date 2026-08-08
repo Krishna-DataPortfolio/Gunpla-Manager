@@ -1,29 +1,36 @@
 # Gunpla Dataset Pipeline
 
-A modular data pipeline for collecting, parsing, and structuring **Gunpla and Bandai Plastic Model metadata** from FandomWiki pages into a clean, machine-readable dataset ready for analysis.
+A modular data pipeline for collecting, cleaning, modeling, loading, and orchestrating **Gunpla and Bandai Plastic Model metadata** from the Gunpla Fandom wiki into structured datasets and data warehouses ready for analysis.
 
-This project spans two phases: **scalable data collection** (querying the Gunpla Fandom wiki via the MediaWiki API and parsing infobox metadata into structured JSONL), and **data cleaning / feature engineering** (turning that raw, inconsistently-labeled wiki data into an analysis-ready DataFrame).
+The project spans four phases: **collection** (MediaWiki API scraping + infobox parsing into JSONL), **cleaning** (turning inconsistently-labeled wiki data into an analysis-ready DataFrame), **warehousing** (loading into PostgreSQL and BigQuery), and **orchestration** (an Airflow DAG tying the whole pipeline together).
 
 ---
 
 ## 🚀 Features
 
 **Collection**
-- Automated page discovery via MediaWiki API
-- Infobox parsing using `mwparserfromhell`
-- Structured dataset generation in JSONL format
+- Automated page discovery via MediaWiki API, infobox parsing via `mwparserfromhell`, JSONL output
 - Manual page override system for missed/edge-case entries
-- Configurable infobox extraction logic
-- CLI-based execution for flexible workflows
 
 **Cleaning & Feature Engineering**
-- Schema normalization across dozens of inconsistent infobox field names (editor-introduced aliases, typos, and template drift resolved into a single canonical column per concept)
-- Grade inference (High Grade, Master Grade, Real Grade, Perfect Grade, Entry Grade, First Grade, Full Mechanics, Super Deformed, 30 Minute Missions/Sisters/Preference, Mega Size, Advanced Grade) derived from `classification` and `kit_name`, since grade is not a labeled infobox field
-- Price parsing across multiple raw formats (`¥1,650`, `3456 yen`), with sanity bounds to catch leaked non-price values (e.g. JAN/ISBN codes mistakenly entered in the wrong field)
-- Per-unit pricing (`price_per_unit_yen`) that correctly accounts for multi-kit sets, so bundles aren't miscounted as cheap single kits
-- Exclusivity classification (`exclusive_channel_type`: Event / Storefront / Magazine / Campaign / Lottery) backfilled from `categories` where the dedicated infobox field was missing, roughly quadrupling usable coverage
-- Relationship fields (`variant_of`, `requires_kit`, `model_of`) parsed from freeform comma/semicolon-separated text into clean list columns, with conflict detection before merging aliased fields
-- Explicit missing-data handling throughout — a field is only ever treated as "genuinely not applicable" after being checked, not assumed
+- Schema normalization across dozens of inconsistent infobox field aliases (editor drift, typos) into single canonical columns
+- Grade inference (HG, MG, RG, PG, EG, FG, FM, SD, 30MM/30MS/30MP, Mega Size, Advanced Grade) derived from `classification`/`kit_name`, since grade isn't a labeled field — ~19% of kits are legitimately gradeless, confirmed by direct inspection rather than assumed
+- Multi-currency price parsing (¥/$, multiple raw formats) with sanity bounds and manual overrides for confirmed source-data errors
+- Per-unit pricing (`price_per_unit_yen`) accounting for multi-kit sets, so bundles aren't miscounted as cheap singles
+- Exclusivity classification backfilled from `categories` where the dedicated field was blank, ~4x usable coverage
+- Relationship fields (`variant_of`, `requires_kit`, `model_of`) parsed into clean list columns, with conflict detection before merging aliases
+
+**Warehousing & Cloud**
+- **PostgreSQL:** normalized star schema (fact table + grade/scale/franchise/exclusivity dimensions), loaded via idempotent upsert on a natural key — verified by re-running the load and confirming stable row counts
+- **BigQuery:** deliberately denormalized wide table, reflecting OLAP's different cost/query model vs. an OLTP database
+- **Google Cloud Storage:** landing zone for raw + processed data, authenticated via Application Default Credentials (no long-lived key file)
+
+**Orchestration**
+- A single Airflow DAG (via Astronomer's local runtime): extract → clean → parallel loads into Postgres, GCS/BigQuery, and the dashboard data refresh
+- Retries and explicit failure propagation, so a failed task blocks its downstream dependents rather than allowing partial runs
+
+**Presentation**
+- Live GitHub Pages dashboard, driven by a regeneratable JSON summary rather than hardcoded figures
 
 ---
 
@@ -31,18 +38,32 @@ This project spans two phases: **scalable data collection** (querying the Gunpla
 ```bash
 ├── gunpla-manager
 │   ├── src/collectors
-│   │   ├── collector_util.py (Dumping the common functionality between manual/full collector in here)
-│       ├── data_writer.py (For writing to the dataset file)
-│       ├── discovery_util.py (Skip Logic and Discovery Search Scraping)
-│       ├── fandom_allcollector.py (For querying and parsing all model kit pages from gunpla wiki)
-│       ├── fandom_manual_collector.py (For manually adding pages with exact page names to an existing dataset)
-│   ├── notebooks
-│       ├── clean_analysis.ipynb (Data cleaning jupyter notebook)
-│       ├── clean_analysis.py (Final script exported from jupyter notebooks)
+│   │   ├── collector_util.py (shared logic between manual/full collectors)
+│       ├── data_writer.py (writes to the dataset file)
+│       ├── discovery_util.py (skip logic + discovery search scraping)
+│       ├── fandom_allcollector.py (queries/parses all model kit pages)
+│       ├── fandom_manual_collector.py (manual page overrides)
 │   ├── transform
-│       ├── clean.py (Utility functions used by clean_analysis
-├── data/ (local only directory to hold parsed data)
-├── gitignore
+│       ├── clean.py (shared cleaning utilities: infer_grade, parse_price, alias-merge helpers)
+│       ├── clean_analysis.py (raw JSONL -> cleaned CSV, CLI script)
+│       ├── generate_dashboard_data.py (cleaned CSV -> docs/assets/data.json)
+
+│   ├── dags
+│       ├── gunpla_pipeline_dag.py (Airflow DAG orchestrating the full pipeline)
+│   ├── docs
+│       ├── index.html (GitHub Pages dashboard)
+│       ├── assets/data.json (generated dashboard data)
+│   ├── data
+│       ├── db
+│           ├── schema.sql (PostgreSQL star schema DDL)
+│           ├── load_to_postgres.py (idempotent upsert into Postgres)
+│           ├── upload_to_gcs.py (raw + cleaned data -> GCS)
+│       ├── processed
+│           ├── Cleaned_Gunpla_Dataset.csv (Cleaned bandai model dataset csv)
+
+├── Dockerfile, requirements.txt, packages.txt, docker-compose.override.yml (Astro/Airflow runtime config)
+├── .env.example
+├── .gitignore
 ├── README.md
 ├── main.py
 ├── requirements.md
@@ -52,18 +73,19 @@ This project spans two phases: **scalable data collection** (querying the Gunpla
 
 ## 🧹 Data Cleaning Notes
 
-The raw wiki data has a handful of quirks worth knowing about if you're extending this pipeline:
+Worth knowing if you're extending this pipeline:
 
-- **No single infobox schema.** Different kit types (standard kits vs. figure/statue pages) and different eras of wiki editing produced different sets of infobox fields — some concepts have 2-3 differently-named aliases (`need paint?` / `need paint` / `need to paint?`, `variant of` / `variant`, `for use with` / `add-on for`) that had to be reconciled by checking for conflicts before merging, not blindly combined.
-- **Grade isn't a labeled field.** It's inferred from `classification` (checked first, since it's often spelled out in full, e.g. "High Grade Iron-Blooded Orphans") with a fallback to parsing `kit_name` prefixes (e.g. "HGI-BO"). A meaningful fraction of kits (~19%) are legitimately gradeless — early/non-standard lines that predate or fall outside Bandai's grade system — and this is distinguished from a parsing failure by direct inspection, not assumed.
-- **Multi-kit sets require per-unit pricing.** A single `price` field can cover 2+ mobile suits in one box; `kit_count` (from the length of `model_of`) and `price_per_unit_yen` normalize for this so bundle pricing doesn't distort price analysis.
-- **`categories` is a reliable secondary signal** for backfilling sparse infobox fields — used to recover exclusivity information for kits where the dedicated `exclusive to` field was blank but the exclusivity was still recorded as a category tag.
-- **Some kit pages return non-standard infobox shapes** (positional/unnamed template parameters, e.g. keys literally named `"1"` and `"2"`) rather than the expected named fields — these are wiki template artifacts from inconsistent editing, not artifacts of the collector, and are excluded from the canonical schema.
+- **No single infobox schema** — different kit types and editing eras produced different field sets; several concepts have 2-3 differently-named aliases, reconciled by checking for conflicts before merging, never blindly combined.
+- **Grade isn't a labeled field** — inferred from `classification` first, then `kit_name`. Missing grade is a real, confirmed category (~19%), not a parsing gap.
+- **Multi-kit sets need per-unit pricing** — one `price` field can cover 2+ suits in a box; `kit_count`/`price_per_unit_yen` normalize for it.
+- **`categories` is a reliable secondary signal** for backfilling sparse fields (e.g. recovering exclusivity info where the dedicated field was blank).
+- **Some infobox shapes are non-standard** (positional/unnamed template params) — wiki template artifacts, excluded from the canonical schema rather than forced into it.
+- **Generic env var names can collide across tools** — Postgres connection vars are namespaced (`GUNPLA_PG*`) to avoid clashing with Airflow's own internal metadata database when both run in the same container environment.
 
 ---
 
-## 📓 Notebooks
+## 🔧 Pipeline & Orchestration
 
-- `notebooks/clean_analysis.ipynb` — the full exploratory cleaning process: schema discovery, alias reconciliation, conflict checks, grade/price/date parsing, and validation at each step.
-- `notebooks/clean_analysis.py` — a reproducible script version, callable independently of the notebook (`python clean_analysis.py --input data/raw/gunpla.jsonl --output data/processed/gunpla_clean.csv`).
-- `transform/clean.py` — the underlying utility functions (`infer_grade`, `parse_price`, `parse_release_year`, alias-merge helpers, exclusivity classification) imported by both the notebook and the script, so cleaning logic lives in one place.
+- `db/load_to_postgres.py` and `db/upload_to_gcs.py` are standalone CLI scripts, each independently runnable and idempotent (safe to rerun without creating duplicates).
+- `dags/gunpla_pipeline_dag.py` sequences the full pipeline in Airflow (via `astro dev start`): extraction and cleaning run sequentially, then Postgres load, GCS/BigQuery load, and the dashboard refresh run in parallel, since none depend on each other — only on cleaned data existing.
+- Local orchestration runs in Docker via the Astro CLI; GCP authentication uses Application Default Credentials, mounted into the containers via `docker-compose.override.yml` rather than a committed key file.
